@@ -22,5 +22,14 @@ export const TOOL_LIST: Tool[] = [
     icon: "🎬",
     url: "https://yt-cutter-2loj.onrender.com/",
     categories: ["Video", "Editing"],
-  }
+  },
+  {
+    id: 2,
+    title: "JSON Utility",
+    description: "json data generator & utils",
+    icon: "📊",
+    url: "https://1json.netlify.app/",
+    categories: ["Utils", "Editing","JSON","Data"],
+  },
+
 ]
