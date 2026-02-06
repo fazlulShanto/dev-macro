@@ -117,7 +117,7 @@ const sanekeyData = {
         { source: "support-technical", target: "cx-neutral", value: 64 },
         { source: "support-sales", target: "cx-negative", value: 32 },
         { source: "support-sales", target: "cx-neutral", value: 32 },
-        { source: "support-billing", target: "cx-neutral", value: 123 },
+        { source: "support-billing", target: "cx-neutral", value: 23 },
         { source: "support-sales", target: "cx-negative", value: 2 },
         { source: "support-others", target: "cx-negative", value: 1 },
 
@@ -225,7 +225,7 @@ export default function Sankey() {
         graphNodes.forEach((node: any) => {
             let y0 = node.y0;
 
-            // Position outgoing links (source links)
+            // Position outgoing links (source links) - proportionally stacked
             if (node.sourceLinks) {
                 for (const link of node.sourceLinks) {
                     link.y0 = y0 + link.width / 2;
@@ -233,15 +233,15 @@ export default function Sankey() {
                 }
             }
 
-            // Position incoming links (target links)
-            // Each link should be centered at the destination node's vertical center
-            // This maintains the destination node's height for all incoming links
+            // Position incoming links (target links) - proportionally stacked
+            // This creates tapering links where source and target widths can differ
             if (node.targetLinks) {
-                const nodeCenterY = (node.y0 + node.y1) / 2;
-
+                let y1 = node.y0;
                 for (const link of node.targetLinks) {
-                    // Center the link at the node's vertical center
-                    link.y1 = nodeCenterY;
+                    // Calculate the width at the target side based on proportion
+                    const targetWidth = link.width; // Use the same scaled width
+                    link.y1 = y1 + targetWidth / 2;
+                    y1 += targetWidth;
                 }
             }
         });
