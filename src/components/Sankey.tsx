@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { sankey as d3Sankey, sankeyLinkHorizontal } from "d3-sankey";
-import type { SankeyLink as D3SankeyLink, SankeyNode as D3SankeyNode } from "d3-sankey";
+import type { SankeyNode as D3SankeyNode } from "d3-sankey";
 
 // Helper functions to find all connected nodes and links
 // Returns both connected nodes AND the specific links that form the path
@@ -139,7 +139,7 @@ interface MySankeyLinkExtra {
 
 
 type MySankeyNode = D3SankeyNode<MySankeyNodeExtra, MySankeyLinkExtra>;
-type MySankeyLink = D3SankeyLink<MySankeyNodeExtra, MySankeyLinkExtra>;
+// type MySankeyLink = D3SankeyLink<MySankeyNodeExtra, MySankeyLinkExtra>;
 
 interface SankeyData {
     nodes: MySankeyNodeExtra[];
@@ -271,6 +271,24 @@ export default function Sankey() {
                 .attr("stop-color", target.color || "#ccc");
         });
 
+        // Create tooltip div
+        const tooltip = d3.select(containerRef.current)
+            .selectAll(".sankey-tooltip")
+            .data([null])
+            .join("div")
+            .attr("class", "sankey-tooltip")
+            .style("position", "absolute")
+            .style("visibility", "hidden")
+            .style("background", "rgba(0, 0, 0, 0.85)")
+            .style("color", "#fff")
+            .style("padding", "8px 12px")
+            .style("border-radius", "6px")
+            .style("font-size", "13px")
+            .style("pointer-events", "none")
+            .style("white-space", "nowrap")
+            .style("box-shadow", "0 2px 8px rgba(0,0,0,0.2)")
+            .style("z-index", "1000");
+
         // Create links group with class for easy selection
         const linksGroup = svg.append("g")
             .attr("class", "links")
@@ -285,10 +303,36 @@ export default function Sankey() {
                 return `link link-source-${source.id} link-target-${target.id}`;
             })
             .attr("d", sankeyLinkHorizontal())
-            .attr("stroke", (d, i) => `url(#gradient-${i})`)
+            .attr("stroke", (_d, i) => `url(#gradient-${i})`)
             .attr("stroke-width", d => Math.max(1, d.width || 0))
             .attr("stroke-opacity", 0.5)
-            .style("transition", "stroke-opacity 0.2s ease");
+            .style("transition", "stroke-opacity 0.2s ease")
+            .style("cursor", "pointer")
+            .on("mouseenter", function (_event, d) {
+                const source = d.source as MySankeyNode;
+                const target = d.target as MySankeyNode;
+                const sourceName = source.subLabel || source.name;
+                const targetName = target.subLabel || target.name;
+
+                tooltip
+                    .style("visibility", "visible")
+                    .html(`<strong>${sourceName}</strong> → <strong>${targetName}</strong> = ${d.value}`);
+
+                // Highlight the hovered link
+                d3.select(this).attr("stroke-opacity", 0.8);
+            })
+            .on("mousemove", function (event) {
+                const containerRect = containerRef.current?.getBoundingClientRect();
+                if (containerRect) {
+                    tooltip
+                        .style("left", `${event.clientX - containerRect.left + 15}px`)
+                        .style("top", `${event.clientY - containerRect.top - 10}px`);
+                }
+            })
+            .on("mouseleave", function () {
+                tooltip.style("visibility", "hidden");
+                d3.select(this).attr("stroke-opacity", 0.5);
+            });
 
         // Create nodes group
         const nodesGroup = svg.append("g")
