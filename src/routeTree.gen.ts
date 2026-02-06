@@ -9,9 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LearnD3RouteImport } from './routes/learnD3'
+import { Route as GraphRouteImport } from './routes/graph'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoStoreRouteImport } from './routes/demo/store'
 
+const LearnD3Route = LearnD3RouteImport.update({
+  id: '/learnD3',
+  path: '/learnD3',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GraphRoute = GraphRouteImport.update({
+  id: '/graph',
+  path: '/graph',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -25,32 +37,54 @@ const DemoStoreRoute = DemoStoreRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/graph': typeof GraphRoute
+  '/learnD3': typeof LearnD3Route
   '/demo/store': typeof DemoStoreRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/graph': typeof GraphRoute
+  '/learnD3': typeof LearnD3Route
   '/demo/store': typeof DemoStoreRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/graph': typeof GraphRoute
+  '/learnD3': typeof LearnD3Route
   '/demo/store': typeof DemoStoreRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo/store'
+  fullPaths: '/' | '/graph' | '/learnD3' | '/demo/store'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo/store'
-  id: '__root__' | '/' | '/demo/store'
+  to: '/' | '/graph' | '/learnD3' | '/demo/store'
+  id: '__root__' | '/' | '/graph' | '/learnD3' | '/demo/store'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GraphRoute: typeof GraphRoute
+  LearnD3Route: typeof LearnD3Route
   DemoStoreRoute: typeof DemoStoreRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/learnD3': {
+      id: '/learnD3'
+      path: '/learnD3'
+      fullPath: '/learnD3'
+      preLoaderRoute: typeof LearnD3RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/graph': {
+      id: '/graph'
+      path: '/graph'
+      fullPath: '/graph'
+      preLoaderRoute: typeof GraphRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -70,6 +104,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GraphRoute: GraphRoute,
+  LearnD3Route: LearnD3Route,
   DemoStoreRoute: DemoStoreRoute,
 }
 export const routeTree = rootRouteImport
