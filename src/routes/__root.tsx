@@ -1,5 +1,5 @@
 import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+import { TanStackRouterDevtoolsInProd } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import Header from '../components/Header'
@@ -17,7 +17,7 @@ export const Route = createRootRoute({
         plugins={[
           {
             name: 'Tanstack Router',
-            render: <TanStackRouterDevtoolsPanel />,
+            render: <TanStackRouterDevtoolsInProd />,
           },
           StoreDevtools,
         ]}
