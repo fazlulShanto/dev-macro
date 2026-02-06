@@ -3,6 +3,70 @@ import * as d3 from "d3";
 import { sankey as d3Sankey, sankeyLinkHorizontal } from "d3-sankey";
 import type { SankeyLink as D3SankeyLink, SankeyNode as D3SankeyNode } from "d3-sankey";
 
+// Helper functions to find all connected nodes and links
+// Returns both connected nodes AND the specific links that form the path
+
+interface ConnectedPath {
+    nodes: Set<string>;
+    linkIndices: Set<number>;
+}
+
+function findConnectedUpstream(
+    nodeId: string,
+    links: Array<{ source: any; target: any }>,
+    visited: Set<string> = new Set(),
+    connectedLinkIndices: Set<number> = new Set()
+): { nodes: Set<string>; linkIndices: Set<number> } {
+    if (visited.has(nodeId)) return { nodes: visited, linkIndices: connectedLinkIndices };
+    visited.add(nodeId);
+
+    // Find all links where this node is the target (incoming links)
+    links.forEach((link, index) => {
+        const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+        if (targetId === nodeId) {
+            connectedLinkIndices.add(index);
+            const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+            findConnectedUpstream(sourceId, links, visited, connectedLinkIndices);
+        }
+    });
+
+    return { nodes: visited, linkIndices: connectedLinkIndices };
+}
+
+function findConnectedDownstream(
+    nodeId: string,
+    links: Array<{ source: any; target: any }>,
+    visited: Set<string> = new Set(),
+    connectedLinkIndices: Set<number> = new Set()
+): { nodes: Set<string>; linkIndices: Set<number> } {
+    if (visited.has(nodeId)) return { nodes: visited, linkIndices: connectedLinkIndices };
+    visited.add(nodeId);
+
+    // Find all links where this node is the source (outgoing links)
+    links.forEach((link, index) => {
+        const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+        if (sourceId === nodeId) {
+            connectedLinkIndices.add(index);
+            const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+            findConnectedDownstream(targetId, links, visited, connectedLinkIndices);
+        }
+    });
+
+    return { nodes: visited, linkIndices: connectedLinkIndices };
+}
+
+function getAllConnectedPaths(
+    nodeId: string,
+    links: Array<{ source: any; target: any }>
+): ConnectedPath {
+    const upstream = findConnectedUpstream(nodeId, links);
+    const downstream = findConnectedDownstream(nodeId, links);
+    return {
+        nodes: new Set([...upstream.nodes, ...downstream.nodes]),
+        linkIndices: new Set([...upstream.linkIndices, ...downstream.linkIndices])
+    };
+}
+
 const sanekeyData = {
     nodes: [
         // Column 1: Channels
@@ -207,21 +271,68 @@ export default function Sankey() {
                 .attr("stop-color", target.color || "#ccc");
         });
 
-        svg.append("g")
-            .attr("fill", "none")
-            .selectAll("path")
+        // Create links group with class for easy selection
+        const linksGroup = svg.append("g")
+            .attr("class", "links")
+            .attr("fill", "none");
+
+        const linkPaths = linksGroup.selectAll("path")
             .data(graphLinks)
             .join("path")
+            .attr("class", d => {
+                const source = d.source as MySankeyNode;
+                const target = d.target as MySankeyNode;
+                return `link link-source-${source.id} link-target-${target.id}`;
+            })
             .attr("d", sankeyLinkHorizontal())
             .attr("stroke", (d, i) => `url(#gradient-${i})`)
             .attr("stroke-width", d => Math.max(1, d.width || 0))
-            .attr("stroke-opacity", 0.5);
+            .attr("stroke-opacity", 0.5)
+            .style("transition", "stroke-opacity 0.2s ease");
 
-        const nodes = svg.append("g")
-            .selectAll("g")
+        // Create nodes group
+        const nodesGroup = svg.append("g")
+            .attr("class", "nodes");
+
+        const nodes = nodesGroup.selectAll("g")
             .data(graphNodes)
             .join("g")
-            .attr("transform", d => `translate(${d.x0 || 0},${d.y0 || 0})`);
+            .attr("class", d => `node node-${d.id}`)
+            .attr("transform", d => `translate(${d.x0 || 0},${d.y0 || 0})`)
+            .style("cursor", "pointer");
+
+        // Hover handlers for highlighting connected paths
+        const handleNodeMouseEnter = (_event: MouseEvent, hoveredNode: MySankeyNode) => {
+            // Get all connected nodes AND link indices (upstream and downstream)
+            const connectedPaths = getAllConnectedPaths(hoveredNode.id, graphLinks);
+
+            // Dim all nodes that are not connected
+            nodes.selectAll("rect")
+                .attr("opacity", (d: any) => connectedPaths.nodes.has(d.id) ? 1 : 0.2);
+
+            nodes.selectAll("text")
+                .attr("opacity", (d: any) => connectedPaths.nodes.has(d.id) ? 1 : 0.2);
+
+            // Highlight only the connected links by checking their index
+            linkPaths.attr("stroke-opacity", (_d: any, i: number) => {
+                if (connectedPaths.linkIndices.has(i)) {
+                    return 0.6;
+                }
+                return 0.1;
+            });
+        };
+
+        const handleNodeMouseLeave = () => {
+            // Reset all nodes
+            nodes.selectAll("rect")
+                .attr("opacity", 1);
+
+            nodes.selectAll("text")
+                .attr("opacity", 1);
+
+            // Reset all links
+            linkPaths.attr("stroke-opacity", 0.5);
+        };
 
         nodes.append("rect")
             .attr("height", d => (d.y1 || 0) - (d.y0 || 0))
@@ -237,6 +348,14 @@ export default function Sankey() {
             .text(d => d.name)
             .attr("font-weight", "bold")
             .attr("fill", "#333");
+
+        // Attach hover events to node groups
+        nodes.on("mouseenter", function (_event, d) {
+            handleNodeMouseEnter(_event, d);
+        })
+            .on("mouseleave", function () {
+                handleNodeMouseLeave();
+            });
 
         // Sublabels
         svg.append("g")
