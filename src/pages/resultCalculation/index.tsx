@@ -175,7 +175,7 @@ export const ResultCalculation = () => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[50vw] bg-white sm:max-w-[50vw] max-h-[80vh] overflow-y-auto">
+        <DialogContent className=" bg-white sm:max-w-[50vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedSemester?.name} - Course Details</DialogTitle>
           </DialogHeader>
