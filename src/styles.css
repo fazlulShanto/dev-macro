@@ -136,3 +136,33 @@ code {
     @apply bg-background text-foreground;
   }
 }
+
+/* Result Calculation Styles */
+.result-calculation-container {
+  @apply min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6 md:p-10;
+  font-family: inherit;
+}
+
+.header {
+  @apply mb-12 text-center;
+}
+
+.header h1 {
+  @apply text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-2;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header p {
+  @apply text-lg text-slate-600 dark:text-slate-300;
+}
+
+.semesters-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-12;
+}
+
+.overall-stats {
+  @apply flex justify-center;
+}

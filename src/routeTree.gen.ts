@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LearnD3RouteImport } from './routes/learnD3'
 import { Route as GraphRouteImport } from './routes/graph'
+import { Route as CpaRouteImport } from './routes/cpa'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoStoreRouteImport } from './routes/demo/store'
 
@@ -22,6 +23,11 @@ const LearnD3Route = LearnD3RouteImport.update({
 const GraphRoute = GraphRouteImport.update({
   id: '/graph',
   path: '/graph',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CpaRoute = CpaRouteImport.update({
+  id: '/cpa',
+  path: '/cpa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,12 +43,14 @@ const DemoStoreRoute = DemoStoreRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cpa': typeof CpaRoute
   '/graph': typeof GraphRoute
   '/learnD3': typeof LearnD3Route
   '/demo/store': typeof DemoStoreRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cpa': typeof CpaRoute
   '/graph': typeof GraphRoute
   '/learnD3': typeof LearnD3Route
   '/demo/store': typeof DemoStoreRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cpa': typeof CpaRoute
   '/graph': typeof GraphRoute
   '/learnD3': typeof LearnD3Route
   '/demo/store': typeof DemoStoreRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/graph' | '/learnD3' | '/demo/store'
+  fullPaths: '/' | '/cpa' | '/graph' | '/learnD3' | '/demo/store'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/graph' | '/learnD3' | '/demo/store'
-  id: '__root__' | '/' | '/graph' | '/learnD3' | '/demo/store'
+  to: '/' | '/cpa' | '/graph' | '/learnD3' | '/demo/store'
+  id: '__root__' | '/' | '/cpa' | '/graph' | '/learnD3' | '/demo/store'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CpaRoute: typeof CpaRoute
   GraphRoute: typeof GraphRoute
   LearnD3Route: typeof LearnD3Route
   DemoStoreRoute: typeof DemoStoreRoute
@@ -85,6 +95,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GraphRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cpa': {
+      id: '/cpa'
+      path: '/cpa'
+      fullPath: '/cpa'
+      preLoaderRoute: typeof CpaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CpaRoute: CpaRoute,
   GraphRoute: GraphRoute,
   LearnD3Route: LearnD3Route,
   DemoStoreRoute: DemoStoreRoute,
